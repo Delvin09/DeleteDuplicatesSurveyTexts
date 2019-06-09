@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.645
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeleteDuplicatesSurveyTexts", "DeleteDuplicatesSurveyTexts\DeleteDuplicatesSurveyTexts.csproj", "{84D9A2DC-9F6A-4E43-BB1C-75FC1C8FA6D7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{84D9A2DC-9F6A-4E43-BB1C-75FC1C8FA6D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84D9A2DC-9F6A-4E43-BB1C-75FC1C8FA6D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84D9A2DC-9F6A-4E43-BB1C-75FC1C8FA6D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84D9A2DC-9F6A-4E43-BB1C-75FC1C8FA6D7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {391D431D-EF44-4E16-AF87-C94101B5F9F7}
+	EndGlobalSection
+EndGlobal
