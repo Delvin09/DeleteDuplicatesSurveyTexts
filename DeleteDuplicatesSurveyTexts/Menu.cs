@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace DeleteDuplicatesSurveyTexts
 {
@@ -90,28 +91,27 @@ namespace DeleteDuplicatesSurveyTexts
 
             var p = new DatabaseProcessor(_connection, _testMode);
             var sw4Db = new Stopwatch();
-            int processed = 0;
-            foreach (var db in p.FindDatabases(out processed))
+            foreach (var db in p.SearchDatabases(out _))
             {
                 sw4Db.Start();
                 try
                 {
-                    Console.WriteLine($"Start Clear Database: {db}");
-                    p.ClearDatabase(db);
+                    Console.WriteLine($"Start Clear Database: {db.Database}");
+                    p.ClearDatabase(db.Database);
                     Console.WriteLine("Success!");
                 }
                 catch (Exception ex)
                 {
                     var color = Console.ForegroundColor;
                     Console.ForegroundColor = ConsoleColor.DarkRed;
-                    Console.WriteLine($"Something go wrong with db: {db}");
+                    Console.WriteLine($"Something go wrong with db: {db.Database}");
                     Console.WriteLine(ex);
                     Console.ForegroundColor = color;
                 }
                 finally
                 {
                     sw4Db.Stop();
-                    Console.WriteLine($"End Clear Database: {db}; Time: {sw4Db.Elapsed}");
+                    Console.WriteLine($"End Clear Database: {db.Database}; Time: {sw4Db.Elapsed}");
                     sw4Db.Reset();
                 }
             }
@@ -122,20 +122,20 @@ namespace DeleteDuplicatesSurveyTexts
 
         private void FindAllDatabases()
         {
-            IList<string> list = null;
+            IList<DatabaseInfo> list = null;
             int processed = 0;
             var sw = new Stopwatch();
             try
             {
                 sw.Start();
                 var p = new DatabaseProcessor(_connection, _testMode);
-                list = p.FindDatabases(out processed);
+                list = p.SearchDatabases(out processed);
                 Console.WriteLine("Database list: ");
                 foreach (var db in list)
                 {
-                    Console.WriteLine($"\t{db}");
+                    Console.WriteLine($"\t{db.Database}  --->  affected rows: {db.AffectedRows}");
                 }
-                File.WriteAllLines("FoundedDbs", list);
+                File.WriteAllLines("FoundedDbs", list.Select(l => $"{l.Database} ----> affected rows: {l.AffectedRows}"));
             }
             catch (Exception ex)
             {

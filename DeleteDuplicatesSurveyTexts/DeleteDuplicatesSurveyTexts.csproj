@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DatabaseInfo.cs" />
     <Compile Include="DatabaseProcessor.cs" />
     <Compile Include="Menu.cs" />
     <Compile Include="Program.cs" />

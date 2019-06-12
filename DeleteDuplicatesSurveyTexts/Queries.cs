@@ -8,6 +8,15 @@ namespace DeleteDuplicatesSurveyTexts
 {
     class Queries
     {
+        public const string InsertPattern = @"
+INSERT SurveyText (Locale, Text, {0}, Survey_Id_Root, SurveyVersion_Id_Root, VariableSet_Id_Root) VALUES ({1}) -- {2}
+";
+
+        public const string GetAccountConnections = @"SELECT
+ ConnectionString
+FROM dbo.Accounts
+WHERE IsDeleted = 0";
+
         public const string CheckDups = @"
 SELECT SUM(s.count) - COUNT(*) FROM (
 SELECT
@@ -180,7 +189,7 @@ SELECT st.Id
  ,st.SurveyVersion_Id_Root
  ,st.VariableSet_Id_Root
 FROM SurveyText st
-WHERE st.{0} = {1}
+WHERE st.{0} = {1} AND st.Locale IN ({2})
 ORDER BY Id
 ";
 
