@@ -73,10 +73,10 @@ namespace DeleteDuplicatesSurveyTexts
         /// <summary>
         /// Return list of all account databases
         /// </summary>
-        private List<string> GetAllAccountDatabases(SqlConnection connection)
+        private HashSet<string> GetAllAccountDatabases(SqlConnection connection)
         {
             List<string> metaList = new List<string>();
-            List<string> list = new List<string>();
+            HashSet<string> list = new HashSet<string>();
 
             using (var cmd = new SqlCommand("SELECT name FROM master.dbo.sysdatabases", connection))
             {
@@ -140,7 +140,7 @@ namespace DeleteDuplicatesSurveyTexts
                 Console.ForegroundColor = ConsoleColor.DarkGray;
                 using (var connection = new SqlConnection(connectionStr))
                 {
-                    var duplicateItems = new Dictionary<int, List<TextItem>>();
+                    var duplicateItems = new HashSet<ItemInfo>();
                     connection.Open();
                     connection.ChangeDatabase(database);
 
@@ -187,10 +187,10 @@ namespace DeleteDuplicatesSurveyTexts
                             {
                                 using (var reader = cmd.ExecuteReader())
                                 {
-                                    var list = new List<TextItem>();
+                                    var list = new HashSet<TextItem>();
                                     while (reader.Read())
                                     {
-                                        list.Add(new TextItem()
+                                        list.Add(new TextItem
                                         {
                                             Id = reader.GetInt32(0),
                                             Text = reader.IsDBNull(1) ? null : reader.GetString(1),
@@ -203,7 +203,10 @@ namespace DeleteDuplicatesSurveyTexts
                                         });
                                     }
 
-                                    duplicateItems[id.Key] = list;
+                                    var info = new ItemInfo(id.Key, columnName);
+                                    info.TextItems.UnionWith(list);
+                                    duplicateItems.Add(info);
+
                                     Console.Write($"\t>><< Processed {++counter} of {itemIds.Count} => for item {id.Key} found {list.Count} >><<");
                                     Console.SetCursorPosition(0, Console.CursorTop);
                                 }
@@ -212,7 +215,8 @@ namespace DeleteDuplicatesSurveyTexts
                     }
 
                     Console.WriteLine();
-                    Console.WriteLine($"======== Items collected: {duplicateItems.SelectMany(i => i.Value).Count()} =========");
+                    Console.WriteLine($"======== Items collected: {duplicateItems.SelectMany(i => i.TextItems).Select(i => i.Id).Count()} =========");
+                    Console.WriteLine($"======== Items need's to delete: {duplicateItems.SelectMany(i => i.TextItems.Skip(1)).Select(i => i.Id).Count()} =========");
                     Console.Write("Press any key for continue...");
                     Console.Read();
 
@@ -226,19 +230,19 @@ namespace DeleteDuplicatesSurveyTexts
             }
         }
 
-        private void Clear(Dictionary<int, List<TextItem>> dupItems, SqlConnection connection)
+        private void Clear(HashSet<ItemInfo> dupItems, SqlConnection connection)
         {
             var allDroppedItems = new List<TextItem>();
             using (var transaction = connection.BeginTransaction(IsolationLevel.ReadCommitted))
             {
                 try
                 {
-                    int counter = 0, all = dupItems.SelectMany(i => i.Value).Count();
+                    int counter = 0, all = dupItems.SelectMany(i => i.TextItems).Count();
                     foreach (var dupItem in dupItems)
                     {
                         var restItems = new List<TextItem>();
                         var droppedItems = new List<TextItem>();
-                        var list = dupItem.Value;
+                        var list = dupItem.TextItems;
                         var processMessage = string.Empty;
 
                         foreach (var groupItem in list.GroupBy(i => i.Locale))
@@ -255,7 +259,7 @@ namespace DeleteDuplicatesSurveyTexts
                                 using (var cmd = new SqlCommand(string.Format(Queries.DeleteItem, constraint), connection, transaction) {CommandTimeout = Timeout})
                                 {
                                     var resultNonQuery = cmd.ExecuteNonQuery();
-                                    processMessage = $"Delete rows count: {resultNonQuery}; local: {groupItem.Key}; id: {dupItem.Key}";
+                                    processMessage = $"Delete rows count: {resultNonQuery}; local: {groupItem.Key}; id: {dupItem.ItemId}";
                                 }
 
                                 using (var cmd = new SqlCommand(string.Format(Queries.FindTextItems, 
@@ -288,7 +292,7 @@ namespace DeleteDuplicatesSurveyTexts
                             }
                             else
                             {
-                                Console.WriteLine($"Only one item - db: {connection.Database}; id: {dupItem.Key}; locale: {groupItem.Key}; ----- SKIP");
+                                Console.WriteLine($"Only one item - db: {connection.Database}; id: {dupItem.ItemId}; locale: {groupItem.Key}; ----- SKIP");
                             }
 
                             Console.Write($"\t >>> Processed {++counter} of {all}. {processMessage}");
@@ -305,7 +309,10 @@ namespace DeleteDuplicatesSurveyTexts
                         allDroppedItems.Distinct(new TextItemIdComparer()).OrderBy(i => i.ItemId).ThenBy(i => i.Locale).Select(i =>
                             string.Format(Queries.InsertPattern
                                 , i.ItemColumnName
-                                , string.Join(",", i.Locale, i.Text, i.ItemId, i.SurveyId, i.SurveyVersionId, i.VariableSetId)
+                                , string.Join(",", i.Locale, i.Text, i.ItemId,
+                                    i.SurveyId?.ToString() ?? "NULL",
+                                    i.SurveyVersionId?.ToString() ?? "NULL",
+                                    i.VariableSetId?.ToString() ?? "NULL")
                                 , i.Id
                             )));
 

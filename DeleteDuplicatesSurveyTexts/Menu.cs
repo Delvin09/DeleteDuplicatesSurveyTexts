@@ -37,6 +37,7 @@ namespace DeleteDuplicatesSurveyTexts
                         FindAllDatabases();
                         Console.ReadLine();
                         break;
+#if !ONLY_INVESTIGATION_MODE
                     case '2':
                         Console.Clear();
                         ClearAllDatabases();
@@ -53,6 +54,12 @@ namespace DeleteDuplicatesSurveyTexts
                         ClearDatabase(database, surveyId);
                         Console.ReadLine();
                         break;
+#else
+                    case '2':
+                    case '3':
+                        Console.WriteLine("Function not supported in this version!");
+                        break;
+#endif
                 }
             } while (key.Key != ConsoleKey.D0 && key.Key != ConsoleKey.NumPad0);
 

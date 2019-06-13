@@ -18,7 +18,7 @@ FROM dbo.Accounts
 WHERE IsDeleted = 0";
 
         public const string CheckDups = @"
-SELECT SUM(s.count) - COUNT(*) FROM (
+SELECT SUM(s.count - 1) FROM (
 SELECT
   st.Question_Id_No_Answer
  ,st.TextBlock_Id
@@ -61,9 +61,6 @@ SELECT
  ,st.ImplicitAssociationQuestionId_LikeButton
  ,st.OpenQuestion_Id_Placeholder
  ,st.Locale
- ,st.Survey_Id_Root
- ,st.SurveyVersion_Id_Root
- ,st.VariableSet_Id_Root
  ,COUNT(*) as count
 FROM SurveyText st
 WHERE st.Question_Id_No_Answer IS NOT NULL
@@ -146,16 +143,9 @@ GROUP BY st.Question_Id_No_Answer
         ,st.ImplicitAssociationQuestionId_DislikeButton
         ,st.ImplicitAssociationQuestionId_LikeButton
         ,st.OpenQuestion_Id_Placeholder
-        ,st.Survey_Id_Root
-        ,st.SurveyVersion_Id_Root
-        ,st.VariableSet_Id_Root
-        ,st.Survey_Id_Root
-        ,st.SurveyVersion_Id_Root
-        ,st.VariableSet_Id_Root
         ,st.Locale
 HAVING COUNT(*) > 1
 ) s";
-
 
         public const string GetDupItem = @"
 SELECT st.{0}
